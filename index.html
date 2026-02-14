@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پول‌یار — مدیریت مالی شخصی</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: rgba(245, 245, 250, 0.85);
+    --bg-solid: #f0f0f5;
+    --glass: rgba(255, 255, 255, 0.55);
+    --glass2: rgba(255, 255, 255, 0.35);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --glass-shadow: rgba(0, 0, 0, 0.06);
+    --accent: #6c5ce7;
+    --accent2: #a29bfe;
+    --accent-glass: rgba(108, 92, 231, 0.12);
+    --green: #00b894;
+    --green-bg: rgba(0, 184, 148, 0.1);
+    --red: #e55039;
+    --red-bg: rgba(229, 80, 57, 0.1);
+    --yellow: #f9ca24;
+    --text: #1a1a2e;
+    --text2: #6b7280;
+    --text3: #9ca3af;
+    --border: rgba(0, 0, 0, 0.08);
+    --radius: 16px;
+    --sidebar-w: 220px;
+    --blur: 20px;
+  }
+
+  [data-theme="dark"] {
+    --bg: rgba(15, 15, 22, 0.9);
+    --bg-solid: #0f0f16;
+    --glass: rgba(30, 30, 45, 0.6);
+    --glass2: rgba(40, 40, 60, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: rgba(0, 0, 0, 0.3);
+    --accent: #7c6cf0;
+    --accent2: #a29bfe;
+    --accent-glass: rgba(124, 108, 240, 0.15);
+    --green: #00cec9;
+    --green-bg: rgba(0, 206, 201, 0.12);
+    --red: #ff6b6b;
+    --red-bg: rgba(255, 107, 107, 0.12);
+    --text: #e8e8f0;
+    --text2: #8888a0;
+    --text3: #555568;
+    --border: rgba(255, 255, 255, 0.06);
+  }
+
+  body {
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    background: var(--bg-solid);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse at 20% 20%, rgba(108,92,231,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(0,184,148,0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(249,202,36,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  [data-theme="dark"] body::before {
+    background: 
+      radial-gradient(ellipse at 20% 20%, rgba(108,92,231,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(0,206,201,0.08) 0%, transparent 50%);
+  }
+
+  .window-frame {
+    position: relative;
+    z-index: 1;
+    width: 1100px;
+    height: 650px;
+    max-width: 96vw;
+    max-height: 90vh;
+    background: var(--bg);
+    backdrop-filter: blur(var(--blur));
+    -webkit-backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 
+      0 20px 60px var(--glass-shadow),
+      0 0 0 1px var(--glass-border) inset;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .titlebar {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: var(--glass2);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    -webkit-app-region: drag;
+    user-select: none;
+  }
+
+  .titlebar-dots {
+    display: flex;
+    gap: 7px;
+    -webkit-app-region: no-drag;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    border: none;
+    padding: 0;
+  }
+
+  .dot:hover { opacity: 0.8; }
+  .dot.close { background: #ff5f57; }
+  .dot.minimize { background: #ffbd2e; }
+  .dot.maximize { background: #28c840; }
+
+  .titlebar-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .titlebar-actions {
+    display: flex;
+    gap: 8px;
+    -webkit-app-region: no-drag;
+  }
+
+  .theme-toggle {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 6px;
+    transition: background 0.2s;
+    line-height: 1;
+  }
+
+  .theme-toggle:hover { background: var(--glass); }
+
+  .app-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--glass2);
+    backdrop-filter: blur(10px);
+    border-left: 1px solid var(--border);
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 0; }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+  }
+
+  .logo-icon {
+    font-size: 22px;
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(108,92,231,0.3);
+  }
+
+  .logo-text { font-size: 15px; font-weight: 700; }
+  .logo-sub { font-size: 10px; color: var(--text2); font-weight: 400; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    color: var(--text2);
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: right;
+    font-family: inherit;
+  }
+
+  .nav-item:hover { background: var(--glass); color: var(--text); }
+  .nav-item.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(108,92,231,0.25);
+  }
+  .nav-item .icon { font-size: 17px; width: 22px; text-align: center; }
+
+  .nav-section {
+    font-size: 10px;
+    color: var(--text3);
+    padding: 12px 12px 4px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--green));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .main {
+    flex: 1;
+    padding: 20px 24px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .main::-webkit-scrollbar { width: 5px; }
+  .main::-webkit-scrollbar-track { background: transparent; }
+  .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .header h1 { font-size: 19px; font-weight: 700; }
+  .header-date { color: var(--text2); font-size: 11px; margin-top: 2px; }
+
+  .header-actions { display: flex; gap: 8px; }
+
+  .btn {
+    padding: 7px 14px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(108,92,231,0.2);
+  }
+  .btn-primary:hover { background: var(--accent2); }
+
+  .btn-outline {
+    background: var(--glass);
+    color: var(--text);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+  }
+  .btn-outline:hover { background: var(--glass2); }
+  .btn-outline.active { background: var(--accent-glass); border-color: var(--accent); color: var(--accent); }
+
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-sm { padding: 5px 10px; font-size: 11px; border-radius: 8px; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid var(--glass-border);
+    transition: transform 0.2s;
+  }
+
+  .stat-card:hover { transform: translateY(-2px); }
+
+  .stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .stat-icon.income { background: var(--green-bg); }
+  .stat-icon.expense { background: var(--red-bg); }
+  .stat-icon.balance { background: var(--accent-glass); }
+  .stat-icon.savings { background: rgba(249,202,36,0.12); }
+
+  .stat-label { font-size: 11px; color: var(--text2); }
+  .stat-value { font-size: 20px; font-weight: 700; margin: 2px 0; direction: ltr; text-align: right; }
+  .stat-change { font-size: 10px; display: flex; align-items: center; gap: 3px; }
+  .stat-change.up { color: var(--green); }
+  .stat-change.down { color: var(--red); }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 5fr 3fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border-radius: 14px;
+    padding: 18px;
+    border: 1px solid var(--glass-border);
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .chart-tabs {
+    display: flex;
+    gap: 3px;
+    background: var(--glass2);
+    border-radius: 7px;
+    padding: 2px;
+  }
+
+  .chart-tab {
+    padding: 4px 10px;
+    border-radius: 5px;
+    border: none;
+    background: none;
+    color: var(--text2);
+    font-size: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .chart-tab.active { background: var(--accent); color: #fff; }
+
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 150px;
+    padding-top: 10px;
+  }
+
+  .bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .bar-pair {
+    display: flex;
+    gap: 2px;
+    align-items: flex-end;
+    width: 100%;
+    justify-content: center;
+    flex: 1;
+  }
+
+  .bar {
+    width: 12px;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.6s cubic-bezier(0.4,0,0.2,1);
+    cursor: pointer;
+  }
+
+  .bar:hover { opacity: 0.75; filter: brightness(1.1); }
+  .bar.income-bar { background: linear-gradient(180deg, var(--green), rgba(0,184,148,0.5)); }
+  .bar.expense-bar { background: linear-gradient(180deg, var(--red), rgba(229,80,57,0.4)); }
+
+  .bar-label { font-size: 9px; color: var(--text3); white-space: nowrap; }
+
+  .donut-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .donut-center {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .donut-total {
+    position: absolute;
+    text-align: center;
+  }
+
+  .donut-total-label { font-size: 9px; color: var(--text3); }
+  .donut-total-value { font-size: 14px; font-weight: 700; }
+
+  .donut-legend { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+
+  .legend-right { display: flex; align-items: center; gap: 6px; }
+  .legend-color { width: 8px; height: 8px; border-radius: 50%; }
+
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .tx-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .tx-list::-webkit-scrollbar { width: 3px; }
+  .tx-list::-webkit-scrollbar-track { background: transparent; }
+  .tx-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .tx-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-radius: 10px;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+
+  .tx-item:hover { background: var(--glass2); }
+
+  .tx-right { display: flex; align-items: center; gap: 10px; }
+
+  .tx-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    background: var(--glass2);
+  }
+
+  .tx-name { font-size: 12px; font-weight: 500; }
+  .tx-cat { font-size: 10px; color: var(--text2); }
+  .tx-amount { font-size: 12px; font-weight: 600; direction: ltr; }
+  .tx-amount.income { color: var(--green); }
+  .tx-amount.expense { color: var(--red); }
+
+  .tx-delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.15s;
+    padding: 4px;
+    border-radius: 6px;
+  }
+
+  .tx-item:hover .tx-delete { opacity: 0.6; }
+  .tx-delete:hover { opacity: 1 !important; background: var(--red-bg); }
+
+  .area-chart-svg { width: 100%; height: 160px; }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--glass);
+    backdrop-filter: blur(30px);
+    border-radius: 18px;
+    padding: 24px;
+    width: 380px;
+    max-width: 90vw;
+    border: 1px solid var(--glass-border);
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.25s;
+    box-shadow: 0 20px 40px var(--glass-shadow);
+  }
+
+  .modal-overlay.active .modal { transform: translateY(0) scale(1); }
+
+  .modal h2 {
+    font-size: 16px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .form-group { margin-bottom: 12px; }
+
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    color: var(--text2);
+    margin-bottom: 4px;
+  }
+
+  .form-group input, .form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--glass2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    transition: border 0.2s;
+    backdrop-filter: blur(5px);
+  }
+
+  .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+
+  .form-row { display: flex; gap: 10px; }
+  .form-row .form-group { flex: 1; }
+
+  .modal-actions { display: flex; gap: 8px; margin-top: 18px; }
+  .modal-actions .btn { flex: 1; justify-content: center; padding: 10px; }
+
+  .type-toggle {
+    display: flex;
+    background: var(--glass2);
+    border-radius: 9px;
+    padding: 3px;
+    gap: 3px;
+  }
+
+  .type-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text2);
+    transition: all 0.2s;
+  }
+
+  .type-btn.active.income-type { background: var(--green); color: #fff; }
+  .type-btn.active.expense-type { background: var(--red); color: #fff; }
+
+  .mini-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 28px;
+    margin-top: 8px;
+  }
+
+  .mini-bar {
+    flex: 1;
+    border-radius: 2px;
+    opacity: 0.4;
+    transition: all 0.3s;
+  }
+  .mini-bar:last-child { opacity: 1; }
+
+  .progress-ring { position: relative; display: flex; align-items: center; justify-content: center; }
+  .progress-text { position: absolute; font-size: 16px; font-weight: 700; }
+
+  .heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .heat-cell {
+    aspect-ratio: 1;
+    border-radius: 3px;
+    background: var(--glass2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .heat-cell:hover { transform: scale(1.3); }
+
+  .notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 12px;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    transition: all 0.3s;
+    box-shadow: 0 8px 24px var(--glass-shadow);
+  }
+  .notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  .page { display: none; }
+  .page.active { display: block; animation: fadeIn 0.25s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  select option { background: var(--bg-solid); }
+
+  .empty-state {
+    text-align: center;
+    padding: 30px;
+    color: var(--text2);
+    font-size: 12px;
+  }
+
+  .chart-legend {
+    display: flex;
+    gap: 14px;
+    margin-top: 8px;
+    justify-content: center;
+  }
+
+  .chart-legend span {
+    font-size: 10px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .chart-legend-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .search-box {
+    padding: 7px 12px;
+    background: var(--glass2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 12px;
+    outline: none;
+    width: 180px;
+    transition: border 0.2s;
+  }
+  .search-box:focus { border-color: var(--accent); }
+  .search-box::placeholder { color: var(--text3); }
+
+  /* دسته‌بندی‌های سفارشی */
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .category-card {
+    background: var(--glass2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .category-card:hover { background: var(--glass); transform: translateY(-2px); }
+
+  .category-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .category-card-icon {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--glass);
+  }
+
+  .category-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .category-card-type {
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  .category-delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: 6px;
+  }
+
+  .category-card:hover .category-delete { opacity: 0.5; }
+  .category-delete:hover { opacity: 1 !important; background: var(--red-bg); }
+
+  .emoji-picker {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 8px;
+    background: var(--glass2);
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  .emoji-item {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    background: var(--glass);
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .emoji-item:hover {
+    background: var(--accent-glass);
+    transform: scale(1.1);
+  }
+
+  .color-picker {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .color-item {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .color-item:hover { transform: scale(1.1); }
+  .color-item.active { border-color: var(--text); box-shadow: 0 0 0 2px var(--glass); }
+
+  @media (max-width: 900px) {
+    .window-frame { width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh; border-radius: 0; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid { grid-template-columns: 1fr; }
+    .bottom-grid { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window-frame">
+  <div class="titlebar">
+    <div class="titlebar-dots">
+      <button class="dot close" onclick="window.electronAPI?.closeWindow()" title="بستن"></button>
+      <button class="dot minimize" onclick="window.electronAPI?.minimizeWindow()" title="کوچک"></button>
+      <button class="dot maximize" onclick="window.electronAPI?.maximizeWindow()" title="بزرگ"></button>
+    </div>
+    <div class="titlebar-title">💰 پول‌یار v1.0</div>
+    <div class="titlebar-actions">
+      <button class="theme-toggle" id="themeToggle" title="تغییر تم">🌙</button>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-icon">💰</div>
+        <div>
+          <div class="logo-text">پول‌یار</div>
+          <div class="logo-sub">مدیریت مالی شخصی</div>
+        </div>
+      </div>
+
+      <div class="nav-section">منوی اصلی</div>
+      <button class="nav-item active" onclick="switchPage('dashboard',this)">
+        <span class="icon">📊</span> داشبورد
+      </button>
+      <button class="nav-item" onclick="switchPage('transactions',this)">
+        <span class="icon">📋</span> تراکنش‌ها
+      </button>
+      <button class="nav-item" onclick="switchPage('analytics',this)">
+        <span class="icon">📈</span> تحلیل‌ها
+      </button>
+      <button class="nav-item" onclick="switchPage('budgets',this)">
+        <span class="icon">🎯</span> بودجه‌بندی
+      </button>
+      <button class="nav-item" onclick="switchPage('categories',this)">
+        <span class="icon">🏷️</span> دسته‌بندی‌ها
+      </button>
+
+      <div class="nav-section">سیستم</div>
+      <button class="nav-item" onclick="switchPage('settings',this)">
+        <span class="icon">⚙️</span> تنظیمات
+      </button>
+
+      <div class="sidebar-footer">
+        <div class="avatar">👤</div>
+        <div>
+          <div style="font-size:11px;font-weight:600;">کاربر پول‌یار</div>
+          <div style="font-size:9px;color:var(--text3);">نسخه افلاین</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <!-- ========== DASHBOARD ========== -->
+      <div class="page active" id="page-dashboard">
+        <div class="header">
+          <div>
+            <h1>داشبورد</h1>
+            <div class="header-date" id="currentDate"></div>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-outline" onclick="openModal('expense')">➖ ثبت هزینه</button>
+            <button class="btn btn-primary" onclick="openModal('income')">➕ ثبت درآمد</button>
+          </div>
+        </div>
+
+        <div class="stats" id="statsCards"></div>
+
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-title">
+              <span>درآمد و هزینه</span>
+              <div class="chart-tabs">
+                <button class="chart-tab active" onclick="setBarView('monthly',this)">ماهانه</button>
+                <button class="chart-tab" onclick="setBarView('weekly',this)">هفتگی</button>
+              </div>
+            </div>
+            <div class="bar-chart" id="barChart"></div>
+            <div class="chart-legend">
+              <span><span class="chart-legend-dot" style="background:var(--green)"></span> درآمد</span>
+              <span><span class="chart-legend-dot" style="background:var(--red)"></span> هزینه</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">دسته‌بندی هزینه‌ها</div>
+            <div class="donut-container" id="donutChart"></div>
+          </div>
+        </div>
+
+        <div class="bottom-grid">
+          <div class="card">
+            <div class="card-title">آخرین تراکنش‌ها</div>
+            <div class="tx-list" id="recentTx"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">روند موجودی</div>
+            <svg class="area-chart-svg" id="areaChart"></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== TRANSACTIONS ========== -->
+      <div class="page" id="page-transactions">
+        <div class="header">
+          <div>
+            <h1>تراکنش‌ها</h1>
+            <div class="header-date">مدیریت و جست‌وجو</div>
+          </div>
+          <div class="header-actions">
+            <input class="search-box" type="text" id="txSearch" placeholder="🔍 جست‌وجو..." oninput="renderAllTx()">
+            <button class="btn btn-primary" onclick="openModal('income')">➕ جدید</button>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm filter-btn active" onclick="filterTx('all',this)">همه</button>
+            <button class="btn btn-outline btn-sm filter-btn" onclick="filterTx('income',this)">💵 درآمدها</button>
+            <button class="btn btn-outline btn-sm filter-btn" onclick="filterTx('expense',this)">🔻 هزینه‌ها</button>
+          </div>
+          <div class="tx-list" id="allTx" style="max-height:400px;"></div>
+        </div>
+      </div>
+
+      <!-- ========== ANALYTICS ========== -->
+      <div class="page" id="page-analytics">
+        <div class="header">
+          <div>
+            <h1>تحلیل‌ها</h1>
+            <div class="header-date">نمای کلی عملکرد مالی</div>
+          </div>
+        </div>
+
+        <div class="charts-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="card">
+            <div class="card-title">نقشه حرارتی هزینه (۳۰ روز)</div>
+            <div class="heatmap" id="heatmap"></div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;">
+              <span style="font-size:9px;color:var(--text3);">کم</span>
+              <div style="display:flex;gap:2px;">
+                <span style="width:10px;height:10px;border-radius:2px;background:var(--glass2);"></span>
+                <span style="width:10px;height:10px;border-radius:2px;background:rgba(229,80,57,0.2);"></span>
+                <span style="width:10px;height:10px;border-radius:2px;background:rgba(229,80,57,0.5);"></span>
+                <span style="width:10px;height:10px;border-radius:2px;background:rgba(229,80,57,0.8);"></span>
+                <span style="width:10px;height:10px;border-radius:2px;background:var(--red);"></span>
+              </div>
+              <span style="font-size:9px;color:var(--text3);">زیاد</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">نسبت پس‌انداز</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:24px;padding:10px 0;">
+              <div class="progress-ring">
+                <svg width="110" height="110" viewBox="0 0 110 110">
+                  <circle cx="55" cy="55" r="45" stroke="var(--glass2)" stroke-width="9" fill="none"/>
+                  <circle cx="55" cy="55" r="45" stroke="var(--green)" stroke-width="9" fill="none"
+                    stroke-dasharray="283" id="savingsRing"
+                    stroke-linecap="round" transform="rotate(-90 55 55)" style="transition:stroke-dashoffset 0.8s;"/>
+                </svg>
+                <div class="progress-text" id="savingsPercent">0%</div>
+              </div>
+              <div style="font-size:12px;">
+                <div style="color:var(--text2);margin-bottom:4px;">درآمد</div>
+                <div style="font-weight:600;margin-bottom:10px;" id="anIncome">0</div>
+                <div style="color:var(--text2);margin-bottom:4px;">هزینه</div>
+                <div style="font-weight:600;margin-bottom:10px;" id="anExpense">0</div>
+                <div style="color:var(--text2);margin-bottom:4px;">پس‌انداز</div>
+                <div style="font-weight:600;color:var(--green);" id="anSavings">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <div class="card-title">مقایسه دسته‌بندی‌ها</div>
+          <div id="horizontalBars" style="display:flex;flex-direction:column;gap:10px;"></div>
+        </div>
+      </div>
+
+      <!-- ========== BUDGETS ========== -->
+      <div class="page" id="page-budgets">
+        <div class="header">
+          <div>
+            <h1>بودجه‌بندی</h1>
+            <div class="header-date">مدیریت بودجه ماهانه</div>
+          </div>
+        </div>
+        <div id="budgetCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;"></div>
+      </div>
+
+      <!-- ========== CATEGORIES ========== -->
+      <div class="page" id="page-categories">
+        <div class="header">
+          <div>
+            <h1>دسته‌بندی‌ها</h1>
+            <div class="header-date">مدیریت دسته‌بندی‌های سفارشی</div>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-primary" onclick="openCategoryModal()">➕ دسته‌بندی جدید</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-title">💵 دسته‌بندی‌های درآمد</div>
+          <div class="category-grid" id="incomeCategoriesGrid"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🔻 دسته‌بندی‌های هزینه</div>
+          <div class="category-grid" id="expenseCategoriesGrid"></div>
+        </div>
+      </div>
+
+      <!-- ========== SETTINGS ========== -->
+      <div class="page" id="page-settings">
+        <div class="header">
+          <div>
+            <h1>تنظیمات</h1>
+            <div class="header-date">شخصی‌سازی برنامه</div>
+          </div>
+        </div>
+        <div class="card" style="max-width:420px;">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+              <span>🌓 تم برنامه</span>
+              <button class="btn btn-outline btn-sm" id="themeToggle2" onclick="toggleTheme()">تغییر تم</button>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+              <span>💱 واحد پول</span>
+              <span style="color:var(--accent);font-weight:600;font-size:12px;">تومان</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+              <span>🌐 زبان</span>
+              <span style="color:var(--accent);font-weight:600;font-size:12px;">فارسی</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+              <span>📦 تعداد تراکنش</span>
+              <span style="color:var(--accent);font-weight:600;font-size:12px;" id="txCount">0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+              <span>🏷️ تعداد دسته‌بندی</span>
+              <span style="color:var(--accent);font-weight:600;font-size:12px;" id="catCount">0</span>
+            </div>
+            <div style="border-top:1px solid var(--border);padding-top:16px;">
+              <button class="btn btn-outline" onclick="exportData()" style="width:100%;justify-content:center;margin-bottom:8px;">📤 خروجی JSON</button>
+              <button class="btn btn-outline" onclick="importData()" style="width:100%;justify-content:center;margin-bottom:8px;">📥 ورودی JSON</button>
+              <button class="btn btn-red" onclick="clearAllData()" style="width:100%;justify-content:center;">🗑️ پاک کردن داده‌ها</button>
+            </div>
+            <div style="text-align:center;color:var(--text3);font-size:10px;padding-top:8px;">
+              پول‌یار v1.0 — ساخته شده با ❤️<br>
+              ذخیره‌سازی محلی فعال است ✅
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ========== TRANSACTION MODAL ========== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2>💵 ثبت تراکنش جدید</h2>
+    <div class="form-group">
+      <div class="type-toggle">
+        <button class="type-btn income-type active" id="typeIncome" onclick="setType('income')">➕ درآمد</button>
+        <button class="type-btn expense-type" id="typeExpense" onclick="setType('expense')">➖ هزینه</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>مبلغ (تومان)</label>
+      <input type="number" id="inputAmount" placeholder="مثلا ۵۰۰٬۰۰۰" min="0">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>عنوان</label>
+        <input type="text" id="inputTitle" placeholder="مثلا حقوق">
+      </div>
+      <div class="form-group">
+        <label>دسته‌بندی</label>
+        <select id="inputCategory"></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>تاریخ</label>
+      <input type="date" id="inputDate">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">انصراف</button>
+      <button class="btn btn-primary" onclick="saveTransaction()">💾 ذخیره</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CATEGORY MODAL ========== -->
+<div class="modal-overlay" id="categoryModal">
+  <div class="modal">
+    <h2>🏷️ دسته‌بندی جدید</h2>
+    <div class="form-group">
+      <label>نوع دسته‌بندی</label>
+      <div class="type-toggle">
+        <button class="type-btn income-type active" id="catTypeIncome" onclick="setCatType('income')">➕ درآمد</button>
+        <button class="type-btn expense-type" id="catTypeExpense" onclick="setCatType('expense')">➖ هزینه</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>نام دسته‌بندی</label>
+      <input type="text" id="catName" placeholder="مثلا فروش محصول">
+    </div>
+    <div class="form-group">
+      <label>انتخاب آیکون</label>
+      <div class="emoji-picker" id="emojiPicker"></div>
+    </div>
+    <div class="form-group">
+      <label>انتخاب رنگ</label>
+      <div class="color-picker" id="colorPicker"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeCategoryModal()">انصراف</button>
+      <button class="btn btn-primary" onclick="saveCategory()">💾 ذخیره</button>
+    </div>
+  </div>
+</div>
+
+<div class="notification" id="notification"></div>
+<input type="file" id="fileInput" accept=".json" style="display:none;">
+
+<script>
+  // ============ DATA STORAGE ============
+  const STORAGE_KEYS = {
+    transactions: 'poolyar_transactions',
+    categories: 'poolyar_categories',
+    theme: 'poolyar_theme'
+  };
+
+  // ============ DATA ============
+  let transactions = [];
+  let categories = {};
+  let currentType = 'income';
+  let txFilter = 'all';
+  let barView = 'monthly';
+  let catType = 'income';
+  let selectedEmoji = '📦';
+  let selectedColor = '#6c5ce7';
+
+  const defaultCategories = {
+    salary:    { icon:'💼', label:'حقوق',      color:'#6c5ce7', type:'income', isDefault:true },
+    freelance: { icon:'💻', label:'فریلنسری',   color:'#a29bfe', type:'income', isDefault:true },
+    gift:      { icon:'🎁', label:'هدیه',       color:'#fd79a8', type:'income', isDefault:true },
+    food:      { icon:'🍕', label:'خوراک',      color:'#e55039', type:'expense', isDefault:true },
+    transport: { icon:'🚗', label:'حمل‌ونقل',    color:'#f9ca24', type:'expense', isDefault:true },
+    shopping:  { icon:'🛍️', label:'خرید',       color:'#e056a0', type:'expense', isDefault:true },
+    bills:     { icon:'📱', label:'قبوض',       color:'#00b894', type:'expense', isDefault:true },
+    health:    { icon:'💊', label:'سلامت',      color:'#55efc4', type:'expense', isDefault:true },
+    fun:       { icon:'🎮', label:'تفریح',      color:'#e17055', type:'expense', isDefault:true },
+    education: { icon:'📚', label:'آموزش',      color:'#0984e3', type:'expense', isDefault:true },
+    rent:      { icon:'🏠', label:'اجاره',      color:'#636e72', type:'expense', isDefault:true },
+    other:     { icon:'📦', label:'سایر',       color:'#95a5a6', type:'both', isDefault:true }
+  };
+
+  const emojis = ['💰','💵','💴','💶','💷','💸','🤑','💳','🏦','📊','📈','📉','💼','🏢','🏭','🏪','🏬','🛒','🛍️','🎁','🎉','🎊','🎈','🎀','💝','🍕','🍔','🍟','🍗','🍖','🌭','🍿','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🥗','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🍤','🍙','🍚','🍘','🍥','🥠','🥮','🍢','🍡','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','☕','🍵','🧃','🥤','🧋','🍶','🍺','🍻','🥂','🍷','🥃','🍸','🍹','🧉','🍾','🧊','🥄','🍴','🍽️','🥣','🥡','🥢','🧂','🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🦯','🦽','🦼','🛴','🚲','🛵','🏍️','🛺','✈️','🚁','🚂','🚆','🚇','🚊','🚝','🚄','🚅','🚈','🚞','🚋','🚃','🚟','🚠','🚡','🛶','⛵','🚤','🛥️','🛳️','⛴️','🚢','⚓','🪝','⛽','🚧','🚥','🚦','🛑','🏠','🏡','🏢','🏬','🏣','🏤','🏥','🏦','🏨','🏪','🏫','🏩','💒','🏛️','⛪','🕌','🛕','🕍','⛩️','🕋','🏕️','🏞️','🏟️','🏗️','🏘️','🌆','🌇','🌃','🌉','🌁','🎡','🎢','🎠','⛲','⛱️','🏖️','🏝️','🏔️','⛰️','🗻','🏛️','📱','💻','⌨️','🖥️','🖨️','🖱️','🖲️','🕹️','🗜️','💾','💿','📀','📼','📷','📸','📹','🎥','📽️','🎞️','📞','☎️','📟','📠','📺','📻','🎙️','🎚️','🎛️','🧭','⏱️','⏲️','⏰','🕰️','⌛','⏳','📡','🔋','🔌','💡','🔦','🕯️','🪔','🧯','🛢️','💸','💵','💴','💶','💷','🪙','💰','💳','🧾','💎','⚖️','🪜','🧰','🪛','🔧','🔨','⚒️','🛠️','⛏️','🪚','🔩','⚙️','🪤','🧱','⛓️','🧲','🔫','💣','🧨','🪓','🔪','🗡️','⚔️','🛡️','🚬','⚰️','🪦','⚱️','🏺','🔮','📿','🧿','💈','⚗️','🔭','🔬','🕳️','🩹','🩺','💊','💉','🩸','🦠','🧬','🧪','🌡️','🧹','🪠','🧺','🧻','🪣','🧼','🪥','🧽','🧴','🛎️','🔑','🗝️','🚪','🪑','🛋️','🛏️','🛌','🧸','🪆','🖼️','🪞','🪟','🛍️','🎁','🎈','🎏','🎀','🪄','🪅','🎊','🎉','🎎','🏮','🎐','🧧','✉️','📩','📨','📧','💌','📥','📤','📦','🏷️','🪧','📪','📫','📬','📭','📮','📯','📜','📃','📄','📑','🧾','📊','📈','📉','🗒️','🗓️','📆','📅','🗑️','📇','🗃️','🗳️','🗄️','📋','📁','📂','🗂️','🗞️','📰','📓','📔','📒','📕','📗','📘','📙','📚','📖','🔖','🧷','🔗','📎','🖇️','📐','📏','🧮','📌','📍','✂️','🖊️','🖋️','✒️','🖌️','🖍️','📝','✏️','🔍','🔎','🔏','🔐','🔒','🔓','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','❤️‍🩹','💕','💞','💓','💗','💖','💘','💝','❣️','⭐','🌟','✨','⚡','🔥','💫','☀️','🌙','⭐'];
+
+  const colors = ['#6c5ce7','#a29bfe','#fd79a8','#e55039','#f9ca24','#e056a0','#00b894','#55efc4','#e17055','#0984e3','#74b9ff','#636e72','#b2bec3','#2d3436','#ff7675','#fab1a0','#ffeaa7','#dfe6e9','#00cec9','#81ecec','#a29bfe','#6c5ce7','#fdcb6e','#e17055','#d63031','#ff6b6b','#ee5a6f','#c44569','#f368e0','#ff9ff3','#54a0ff','#48dbfb','#0abde3','#00d2d3','#1dd1a1','#10ac84','#576574','#222f3e','#f8b500','#ff6348'];
+
+  const gMonths = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+
+  // ============ LOAD/SAVE ============
+  function loadData() {
+    try {
+      const savedTx = localStorage.getItem(STORAGE_KEYS.transactions);
+      const savedCat = localStorage.getItem(STORAGE_KEYS.categories);
+      const savedTheme = localStorage.getItem(STORAGE_KEYS.theme);
+      
+      transactions = savedTx ? JSON.parse(savedTx) : [];
+      categories = savedCat ? JSON.parse(savedCat) : { ...defaultCategories };
+      
+      if (savedTheme === 'dark') {
+        isDark = true;
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('themeToggle').textContent = '☀️';
+      }
+      
+      // اگر دسته‌بندی خالی بود، از پیش‌فرض استفاده کن
+      if (Object.keys(categories).length === 0) {
+        categories = { ...defaultCategories };
+      }
+    } catch (e) {
+      console.error('خطا در بارگذاری داده‌ها:', e);
+      categories = { ...defaultCategories };
+    }
+  }
+
+  function saveData() {
+    try {
+      localStorage.setItem(STORAGE_KEYS.transactions, JSON.stringify(transactions));
+      localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(categories));
+      localStorage.setItem(STORAGE_KEYS.theme, isDark ? 'dark' : 'light');
+    } catch (e) {
+      console.error('خطا در ذخیره‌سازی:', e);
+      notify('⚠️ خطا در ذخیره‌سازی داده‌ها');
+    }
+  }
+
+  // ============ THEME ============
+  let isDark = false;
+
+  function toggleTheme() {
+    isDark = !isDark;
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : '');
+    document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+    saveData();
+  }
+
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+  // ============ HELPERS ============
+  function daysAgo(n) {
+    const d = new Date(); 
+    d.setDate(d.getDate() - n);
+    return d.toISOString().split('T')[0];
+  }
+
+  function genId() { 
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 9); 
+  }
+
+  function fmt(n) { 
+    return Number(n).toLocaleString('fa-IR'); 
+  }
+
+  function fmtDate(ds) {
+    const d = new Date(ds);
+    const months = ['ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'];
+    return `${d.getDate()} ${months[d.getMonth()]}`;
+  }
+
+  function getMonth(offset = 0) {
+    const now = new Date();
+    const target = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    return transactions.filter(t => {
+      const d = new Date(t.date);
+      return d.getMonth() === target.getMonth() && d.getFullYear() === target.getFullYear();
+    });
+  }
+
+  function sumType(arr, type) { 
+    return arr.filter(t => t.type === type).reduce((s, t) => s + t.amount, 0); 
+  }
+
+  function getCategoryList(type) {
+    return Object.entries(categories)
+      .filter(([_, cat]) => cat.type === type || cat.type === 'both')
+      .map(([key, cat]) => ({ key, ...cat }));
+  }
+
+  // ============ SEED ============
+  function seedData() {
+    if (transactions.length > 0) return; // اگر داده داره seed نمی‌کنیم
+    
+    const items = [
+      { type:'income', amount:15000000, title:'حقوق ماهانه', category:'salary', date:daysAgo(1) },
+      { type:'income', amount:4200000, title:'پروژه فریلنسری', category:'freelance', date:daysAgo(3) },
+      { type:'income', amount:1000000, title:'هدیه تولد', category:'gift', date:daysAgo(5) },
+      { type:'expense', amount:920000, title:'خرید هفتگی', category:'food', date:daysAgo(0) },
+      { type:'expense', amount:250000, title:'بنزین', category:'transport', date:daysAgo(1) },
+      { type:'expense', amount:1800000, title:'لباس زمستانی', category:'shopping', date:daysAgo(2) },
+      { type:'expense', amount:520000, title:'قبض برق و گاز', category:'bills', date:daysAgo(4) },
+      { type:'expense', amount:380000, title:'دارو', category:'health', date:daysAgo(5) },
+      { type:'expense', amount:650000, title:'سینما و رستوران', category:'fun', date:daysAgo(2) },
+      { type:'income', amount:2500000, title:'پاداش', category:'salary', date:daysAgo(7) },
+      { type:'expense', amount:1100000, title:'دوره آنلاین', category:'education', date:daysAgo(6) },
+      { type:'expense', amount:350000, title:'تاکسی اینترنتی', category:'transport', date:daysAgo(3) },
+      { type:'expense', amount:480000, title:'رستوران', category:'food', date:daysAgo(8) },
+      { type:'income', amount:6000000, title:'فروش محصول', category:'freelance', date:daysAgo(10) },
+      { type:'expense', amount:750000, title:'خرید آنلاین', category:'shopping', date:daysAgo(9) },
+      { type:'expense', amount:280000, title:'قبض موبایل', category:'bills', date:daysAgo(11) },
+      { type:'expense', amount:5000000, title:'اجاره خانه', category:'rent', date:daysAgo(1) },
+      { type:'income', amount:13000000, title:'حقوق ماه قبل', category:'salary', date:daysAgo(32) },
+      { type:'expense', amount:4800000, title:'اجاره ماه قبل', category:'rent', date:daysAgo(30) },
+      { type:'expense', amount:900000, title:'خوراک', category:'food', date:daysAgo(20) },
+    ];
+    items.forEach(i => transactions.push({ ...i, id: genId() }));
+    saveData();
+  }
+
+  // ============ NAVIGATION ============
+  function switchPage(page, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    if (btn) btn.classList.add('active');
+    renderAll();
+  }
+
+  // ============ TRANSACTION MODAL ============
+  function updateCategoryOptions() {
+    const sel = document.getElementById('inputCategory');
+    const cats = getCategoryList(currentType);
+    sel.innerHTML = cats.map(c =>
+      `<option value="${c.key}">${c.icon} ${c.label}</option>`
+    ).join('');
+  }
+
+  function openModal(type) {
+    currentType = type;
+    updateTypeButtons();
+    updateCategoryOptions();
+    document.getElementById('inputDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('inputAmount').value = '';
+    document.getElementById('inputTitle').value = '';
+    document.getElementById('modalOverlay').classList.add('active');
+    setTimeout(() => document.getElementById('inputAmount').focus(), 200);
+  }
+
+  function closeModal() { 
+    document.getElementById('modalOverlay').classList.remove('active'); 
+  }
+
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  function setType(type) {
+    currentType = type;
+    updateTypeButtons();
+    updateCategoryOptions();
+  }
+
+  function updateTypeButtons() {
+    document.getElementById('typeIncome').classList.toggle('active', currentType === 'income');
+    document.getElementById('typeExpense').classList.toggle('active', currentType === 'expense');
+  }
+
+  function saveTransaction() {
+    const amount = parseInt(document.getElementById('inputAmount').value);
+    const title = document.getElementById('inputTitle').value.trim();
+    const category = document.getElementById('inputCategory').value;
+    const date = document.getElementById('inputDate').value;
+
+    if (!amount || amount <= 0) { notify('❌ لطفاً مبلغ معتبر وارد کنید'); return; }
+    if (!title) { notify('❌ لطفاً عنوان را وارد کنید'); return; }
+    if (!date) { notify('❌ لطفاً تاریخ را انتخاب کنید'); return; }
+
+    transactions.push({ id: genId(), type: currentType, amount, title, category, date });
+    closeModal();
+    saveData();
+    renderAll();
+    notify(currentType === 'income' ? '✅ درآمد با موفقیت ثبت شد' : '✅ هزینه با موفقیت ثبت شد');
+  }
+
+  function deleteTransaction(id) {
+    if (!confirm('آیا از حذف این تراکنش مطمئن هستید؟')) return;
+    transactions = transactions.filter(t => t.id !== id);
+    saveData();
+    renderAll();
+    notify('🗑️ تراکنش حذف شد');
+  }
+
+  function notify(msg) {
+    const el = document.getElementById('notification');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2500);
+  }
+
+  // ============ CATEGORY MODAL ============
+  function renderEmojiPicker() {
+    const container = document.getElementById('emojiPicker');
+    container.innerHTML = emojis.map(e => 
+      `<button class="emoji-item" onclick="selectEmoji('${e}')">${e}</button>`
+    ).join('');
+  }
+
+  function renderColorPicker() {
+    const container = document.getElementById('colorPicker');
+    container.innerHTML = colors.map(c => 
+      `<button class="color-item ${c === selectedColor ? 'active' : ''}" 
+        style="background:${c}" onclick="selectColor('${c}')"></button>`
+    ).join('');
+  }
+
+  function selectEmoji(emoji) {
+    selectedEmoji = emoji;
+    document.querySelectorAll('.emoji-item').forEach(e => {
+      e.style.background = e.textContent === emoji ? 'var(--accent-glass)' : '';
+    });
+  }
+
+  function selectColor(color) {
+    selectedColor = color;
+    document.querySelectorAll('.color-item').forEach(e => {
+      e.classList.toggle('active', e.style.background === color);
+    });
+  }
+
+  function setCatType(type) {
+    catType = type;
+    document.getElementById('catTypeIncome').classList.toggle('active', type === 'income');
+    document.getElementById('catTypeExpense').classList.toggle('active', type === 'expense');
+  }
+
+  function openCategoryModal() {
+    catType = 'income';
+    selectedEmoji = '📦';
+    selectedColor = '#6c5ce7';
+    document.getElementById('catName').value = '';
+    setCatType('income');
+    renderEmojiPicker();
+    renderColorPicker();
+    document.getElementById('categoryModal').classList.add('active');
+    setTimeout(() => document.getElementById('catName').focus(), 200);
+  }
+
+  function closeCategoryModal() {
+    document.getElementById('categoryModal').classList.remove('active');
+  }
+
+  document.getElementById('categoryModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeCategoryModal();
+  });
+
+  function saveCategory() {
+    const name = document.getElementById('catName').value.trim();
+    if (!name) { notify('❌ لطفاً نام دسته‌بندی را وارد کنید'); return; }
+
+    const key = 'custom_' + genId();
+    categories[key] = {
+      icon: selectedEmoji,
+      label: name,
+      color: selectedColor,
+      type: catType,
+      isDefault: false
+    };
+
+    closeCategoryModal();
+    saveData();
+    renderAll();
+    notify('✅ دسته‌بندی جدید ایجاد شد');
+  }
+
+  function deleteCategory(key) {
+    if (categories[key].isDefault) {
+      notify('⚠️ دسته‌بندی‌های پیش‌فرض قابل حذف نیستند');
+      return;
+    }
+    
+    const usedInTx = transactions.some(t => t.category === key);
+    if (usedInTx) {
+      notify('⚠️ این دسته‌بندی در تراکنش‌ها استفاده شده است');
+      return;
+    }
+
+    if (!confirm('آیا از حذف این دسته‌بندی مطمئن هستید؟')) return;
+    
+    delete categories[key];
+    saveData();
+    renderAll();
+    notify('🗑️ دسته‌بندی حذف شد');
+  }
+
+  function renderCategories() {
+    const incomeCats = getCategoryList('income');
+    const expenseCats = getCategoryList('expense').filter(c => c.type === 'expense');
+
+    document.getElementById('incomeCategoriesGrid').innerHTML = incomeCats.length
+      ? incomeCats.map(c => `
+        <div class="category-card">
+          <div class="category-card-header">
+            <div class="category-card-icon" style="background:${c.color}20">${c.icon}</div>
+            ${!c.isDefault ? `<button class="category-delete" onclick="deleteCategory('${c.key}')">🗑️</button>` : ''}
+          </div>
+          <div class="category-card-name">${c.label}</div>
+          <div class="category-card-type">درآمد</div>
+        </div>
+      `).join('')
+      : '<div class="empty-state">دسته‌بندی درآمدی وجود ندارد</div>';
+
+    document.getElementById('expenseCategoriesGrid').innerHTML = expenseCats.length
+      ? expenseCats.map(c => `
+        <div class="category-card">
+          <div class="category-card-header">
+            <div class="category-card-icon" style="background:${c.color}20">${c.icon}</div>
+            ${!c.isDefault ? `<button class="category-delete" onclick="deleteCategory('${c.key}')">🗑️</button>` : ''}
+          </div>
+          <div class="category-card-name">${c.label}</div>
+          <div class="category-card-type">هزینه</div>
+        </div>
+      `).join('')
+      : '<div class="empty-state">دسته‌بندی هزینه‌ای وجود ندارد</div>';
+  }
+
+  // ============ RENDER STATS ============
+  function renderStats() {
+    const thisM = getMonth(0);
+    const lastM = getMonth(-1);
+    const inc = sumType(thisM, 'income');
+    const exp = sumType(thisM, 'expense');
+    const bal = inc - exp;
+    const pInc = sumType(lastM, 'income');
+    const pExp = sumType(lastM, 'expense');
+    const incCh = pInc ? Math.round(((inc - pInc) / pInc) * 100) : 0;
+    const expCh = pExp ? Math.round(((exp - pExp) / pExp) * 100) : 0;
+    const totalBal = sumType(transactions, 'income') - sumType(transactions, 'expense');
+
+    document.getElementById('statsCards').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon income">💵</div>
+          <span class="stat-change ${incCh >= 0 ? 'up' : 'down'}">${incCh >= 0 ? '▲' : '▼'} ${Math.abs(incCh)}%</span>
+        </div>
+        <div class="stat-label">درآمد ماهانه</div>
+        <div class="stat-value" style="color:var(--green);">${fmt(inc)}</div>
+        ${miniChartHTML(thisM, 'income')}
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon expense">🔻</div>
+          <span class="stat-change ${expCh <= 0 ? 'up' : 'down'}">${expCh > 0 ? '▲' : '▼'} ${Math.abs(expCh)}%</span>
+        </div>
+        <div class="stat-label">هزینه ماهانه</div>
+        <div class="stat-value" style="color:var(--red);">${fmt(exp)}</div>
+        ${miniChartHTML(thisM, 'expense')}
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon balance">💎</div>
+        </div>
+        <div class="stat-label">تراز ماهانه</div>
+        <div class="stat-value" style="color:${bal >= 0 ? 'var(--green)' : 'var(--red)'};">${fmt(bal)}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:6px;">این ماه</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon savings">🏦</div>
+        </div>
+        <div class="stat-label">کل موجودی</div>
+        <div class="stat-value" style="color:${totalBal >= 0 ? 'var(--accent)' : 'var(--red)'};">${fmt(totalBal)}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:6px;">از ${fmt(transactions.length)} تراکنش</div>
+      </div>
+    `;
+  }
+
+  function miniChartHTML(data, type) {
+    const days = {};
+    data.filter(t => t.type === type).forEach(t => {
+      const d = new Date(t.date).getDate();
+      days[d] = (days[d] || 0) + t.amount;
+    });
+    const vals = Object.values(days);
+    if (!vals.length) return '<div class="mini-chart"></div>';
+    const max = Math.max(...vals);
+    const color = type === 'income' ? 'var(--green)' : 'var(--red)';
+    return '<div class="mini-chart">' + vals.slice(-8).map(v =>
+      `<div class="mini-bar" style="height:${Math.max(3,(v/max)*100)}%;background:${color};"></div>`
+    ).join('') + '</div>';
+  }
+
+  // ============ BAR CHART ============
+  function setBarView(v, btn) {
+    barView = v;
+    document.querySelectorAll('.chart-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderBarChart();
+  }
+
+  function renderBarChart() {
+    const ct = document.getElementById('barChart');
+    let groups = [];
+
+    if (barView === 'monthly') {
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(); 
+        d.setMonth(d.getMonth() - i);
+        const m = d.getMonth(), y = d.getFullYear();
+        const mTx = transactions.filter(t => { 
+          const td = new Date(t.date); 
+          return td.getMonth() === m && td.getFullYear() === y; 
+        });
+        groups.push({ 
+          label: gMonths[m].substring(0, 3), 
+          income: sumType(mTx, 'income'), 
+          expense: sumType(mTx, 'expense') 
+        });
+      }
+    } else {
+      for (let i = 3; i >= 0; i--) {
+        const start = new Date(); 
+        start.setDate(start.getDate() - (i + 1) * 7);
+        const end = new Date(); 
+        end.setDate(end.getDate() - i * 7);
+        const wTx = transactions.filter(t => { 
+          const d = new Date(t.date); 
+          return d >= start && d < end; 
+        });
+        groups.push({ 
+          label: `هفته ${4-i}`, 
+          income: sumType(wTx, 'income'), 
+          expense: sumType(wTx, 'expense') 
+        });
+      }
+    }
+
+    const max = Math.max(...groups.map(g => Math.max(g.income, g.expense)), 1);
+    ct.innerHTML = groups.map(g => `
+      <div class="bar-group">
+        <div class="bar-pair">
+          <div class="bar income-bar" style="height:${Math.max(3,(g.income/max)*130)}px;" title="درآمد: ${fmt(g.income)}"></div>
+          <div class="bar expense-bar" style="height:${Math.max(3,(g.expense/max)*130)}px;" title="هزینه: ${fmt(g.expense)}"></div>
+        </div>
+        <div class="bar-label">${g.label}</div>
+      </div>
+    `).join('');
+  }
+
+  // ============ DONUT ============
+  function renderDonut() {
+    const expenses = getMonth(0).filter(t => t.type === 'expense');
+    const catTotals = {};
+    expenses.forEach(t => { 
+      catTotals[t.category] = (catTotals[t.category] || 0) + t.amount; 
+    });
+    const total = Object.values(catTotals).reduce((s, v) => s + v, 0) || 1;
+    const sorted = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+
+    const r = 52, circ = 2 * Math.PI * r;
+    let offset = 0;
+
+    const circles = sorted.map(([cat, val]) => {
+      const dash = (val / total) * circ;
+      const catData = categories[cat] || categories.other;
+      const c = `<circle cx="65" cy="65" r="${r}" fill="none" stroke="${catData.color}"
+        stroke-width="14" stroke-dasharray="${dash} ${circ - dash}" stroke-dashoffset="${-offset}" 
+        style="transition:all 0.5s;" />`;
+      offset += dash;
+      return c;
+    });
+
+    const legend = sorted.slice(0, 6).map(([cat, val]) => {
+      const catData = categories[cat] || categories.other;
+      return `
+        <div class="legend-item">
+          <div class="legend-right">
+            <span class="legend-color" style="background:${catData.color};"></span>
+            <span>${catData.icon} ${catData.label}</span>
+          </div>
+          <span style="color:var(--text2);direction:ltr;font-size:10px;">${Math.round((val/total)*100)}%</span>
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('donutChart').innerHTML = `
+      <div class="donut-center">
+        <svg width="130" height="130" viewBox="0 0 130 130" style="transform:rotate(-90deg);">
+          ${circles.join('')}
+        </svg>
+        <div class="donut-total">
+          <div class="donut-total-label">مجموع هزینه</div>
+          <div class="donut-total-value">${fmt(total)}</div>
+        </div>
+      </div>
+      <div class="donut-legend">${legend || '<div class="empty-state">داده‌ای وجود ندارد</div>'}</div>
+    `;
+  }
+
+  // ============ TRANSACTIONS LIST ============
+  function txHTML(t, showDelete = false) {
+    const cat = categories[t.category] || categories.other;
+    return `
+      <div class="tx-item">
+        <div class="tx-right">
+          <div class="tx-icon">${cat.icon}</div>
+          <div>
+            <div class="tx-name">${t.title}</div>
+            <div class="tx-cat">${cat.label} · ${fmtDate(t.date)}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="text-align:left;">
+            <div class="tx-amount ${t.type}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)}</div>
+          </div>
+          ${showDelete ? `<button class="tx-delete" onclick="deleteTransaction('${t.id}')" title="حذف">🗑️</button>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderRecentTx() {
+    const sorted = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+    document.getElementById('recentTx').innerHTML = sorted.length
+      ? sorted.slice(0, 7).map(t => txHTML(t)).join('')
+      : '<div class="empty-state">هنوز تراکنشی ثبت نشده 📭</div>';
+  }
+
+  function filterTx(f, btn) {
+    txFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderAllTx();
+  }
+
+  function renderAllTx() {
+    let sorted = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+    if (txFilter !== 'all') sorted = sorted.filter(t => t.type === txFilter);
+    const q = (document.getElementById('txSearch')?.value || '').trim().toLowerCase();
+    if (q) sorted = sorted.filter(t => 
+      t.title.toLowerCase().includes(q) || 
+      (categories[t.category]?.label || '').toLowerCase().includes(q)
+    );
+    document.getElementById('allTx').innerHTML = sorted.length
+      ? sorted.map(t => txHTML(t, true)).join('')
+      : '<div class="empty-state">تراکنشی یافت نشد 🤷</div>';
+  }
+
+  // ============ AREA CHART ============
+  function renderAreaChart() {
+    const svg = document.getElementById('areaChart');
+    const sorted = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+    let balance = 0;
+    const daily = {};
+    sorted.forEach(t => {
+      balance += t.type === 'income' ? t.amount : -t.amount;
+      daily[t.date] = balance;
+    });
+
+    const vals = Object.values(daily);
+    if (vals.length < 2) {
+      svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="var(--text3)" font-size="12" font-family="Vazirmatn">داده کافی نیست</text>';
+      return;
+    }
+
+    const min = Math.min(...vals), max = Math.max(...vals), range = max - min || 1;
+    const w = 200, h = 80, p = 5;
+    const pts = vals.map((v, i) => ({
+      x: p + (i / (vals.length - 1)) * (w - p * 2),
+      y: h - p - ((v - min) / range) * (h - p * 2)
+    }));
+
+    function catmull(pts) {
+      if (pts.length < 2) return '';
+      let d = `M${pts[0].x},${pts[0].y}`;
+      for (let i = 0; i < pts.length - 1; i++) {
+        const p0 = pts[Math.max(0, i - 1)];
+        const p1 = pts[i];
+        const p2 = pts[i + 1];
+        const p3 = pts[Math.min(pts.length - 1, i + 2)];
+        const cp1x = p1.x + (p2.x - p0.x) / 6;
+        const cp1y = p1.y + (p2.y - p0.y) / 6;
+        const cp2x = p2.x - (p3.x - p1.x) / 6;
+        const cp2y = p2.y - (p3.y - p1.y) / 6;
+        d += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+      }
+      return d;
+    }
+
+    const line = catmull(pts);
+    const area = line + ` L${pts[pts.length-1].x},${h} L${pts[0].x},${h} Z`;
+
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.setAttribute('preserveAspectRatio', 'none');
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${area}" fill="url(#ag)"/>
+      <path d="${line}" fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${pts[pts.length-1].x}" cy="${pts[pts.length-1].y}" r="2.5" fill="var(--accent2)" stroke="var(--accent)" stroke-width="1"/>
+    `;
+  }
+
+  // ============ ANALYTICS ============
+  function renderAnalytics() {
+    // Heatmap
+    const last30 = {};
+    for (let i = 29; i >= 0; i--) last30[daysAgo(i)] = 0;
+    transactions.filter(t => t.type === 'expense').forEach(t => { 
+      if (last30[t.date] !== undefined) last30[t.date] += t.amount; 
+    });
+    const hv = Object.values(last30);
+    const hMax = Math.max(...hv) || 1;
+    const cells = Object.entries(last30);
+    while (cells.length % 7 !== 0) cells.unshift(['', 0]);
+
+    document.getElementById('heatmap').innerHTML = cells.map(([d, v]) => {
+      if (!d) return '<div class="heat-cell"></div>';
+      const a = v > 0 ? 0.15 + (v / hMax) * 0.85 : 0;
+      return `<div class="heat-cell" style="background:rgba(229,80,57,${a});" title="${d}: ${fmt(v)} ت"></div>`;
+    }).join('');
+
+    // Savings ring
+    const thisM = getMonth(0);
+    const inc = sumType(thisM, 'income'), exp = sumType(thisM, 'expense'), sav = inc - exp;
+    const pct = inc > 0 ? Math.max(0, Math.min(100, Math.round((sav / inc) * 100))) : 0;
+    const ring = document.getElementById('savingsRing');
+    ring.setAttribute('stroke-dashoffset', 283 - (pct / 100) * 283);
+    document.getElementById('savingsPercent').textContent = `${pct}%`;
+    document.getElementById('anIncome').textContent = fmt(inc) + ' ت';
+    document.getElementById('anExpense').textContent = fmt(exp) + ' ت';
+    document.getElementById('anSavings').textContent = fmt(sav) + ' ت';
+
+    // Horizontal bars
+    const catTotals = {};
+    transactions.filter(t => t.type === 'expense').forEach(t => { 
+      catTotals[t.category] = (catTotals[t.category] || 0) + t.amount; 
+    });
+    const sc = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+    const cMax = sc.length ? sc[0][1] : 1;
+
+    document.getElementById('horizontalBars').innerHTML = sc.length
+      ? sc.map(([cat, val]) => {
+        const c = categories[cat] || categories.other;
+        return `
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="width:70px;font-size:11px;display:flex;align-items:center;gap:5px;flex-shrink:0;">${c.icon} ${c.label}</span>
+            <div style="flex:1;height:20px;background:var(--glass2);border-radius:5px;overflow:hidden;">
+              <div style="height:100%;width:${Math.round((val/cMax)*100)}%;background:${c.color};border-radius:5px;transition:width 0.5s;"></div>
+            </div>
+            <span style="font-size:10px;color:var(--text2);width:80px;text-align:left;direction:ltr;">${fmt(val)}</span>
+          </div>
+        `;
+      }).join('')
+      : '<div class="empty-state">داده‌ای برای نمایش وجود ندارد</div>';
+  }
+
+  // ============ BUDGETS ============
+  function renderBudgets() {
+    const budgets = getCategoryList('expense').map(c => ({
+      cat: c.key,
+      limit: 2000000 // بودجه پیش‌فرض
+    }));
+
+    const thisExp = getMonth(0).filter(t => t.type === 'expense');
+
+    document.getElementById('budgetCards').innerHTML = budgets.length
+      ? budgets.map(b => {
+        const c = categories[b.cat];
+        const spent = thisExp.filter(t => t.category === b.cat).reduce((s, t) => s + t.amount, 0);
+        const pct = Math.min(100, Math.round((spent / b.limit) * 100));
+        const over = spent > b.limit;
+        const barColor = over ? 'var(--red)' : pct > 75 ? 'var(--yellow)' : 'var(--green)';
+
+        return `
+          <div class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="tx-icon" style="font-size:20px;">${c.icon}</div>
+                <div>
+                  <div style="font-size:13px;font-weight:600;">${c.label}</div>
+                  <div style="font-size:10px;color:var(--text3);">${fmt(b.limit)} بودجه</div>
+                </div>
+              </div>
+              <span style="font-size:18px;font-weight:700;color:${barColor};">${pct}%</span>
+            </div>
+            <div style="height:6px;background:var(--glass2);border-radius:3px;overflow:hidden;margin-bottom:8px;">
+              <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width 0.5s;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);">
+              <span>مصرف: ${fmt(spent)}</span>
+              <span>${over ? '⚠️ اضافه: ' + fmt(spent - b.limit) : 'مانده: ' + fmt(b.limit - spent)}</span>
+            </div>
+          </div>
+        `;
+      }).join('')
+      : '<div class="empty-state">دسته‌بندی هزینه‌ای وجود ندارد</div>';
+  }
+
+  // ============ SETTINGS ============
+  function renderSettings() {
+    const txEl = document.getElementById('txCount');
+    const catEl = document.getElementById('catCount');
+    if (txEl) txEl.textContent = fmt(transactions.length);
+    if (catEl) catEl.textContent = fmt(Object.keys(categories).length);
+  }
+
+  // ============ EXPORT/IMPORT ============
+  function exportData() {
+    const data = {
+      transactions,
+      categories,
+      exportDate: new Date().toISOString(),
+      version: '1.0'
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `poolyar-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    notify('📤 فایل با موفقیت دانلود شد');
+  }
+
+  function importData() {
+    document.getElementById('fileInput').click();
+  }
+
+  document.getElementById('fileInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.transactions && data.categories) {
+          transactions = data.transactions;
+          categories = data.categories;
+          saveData();
+          renderAll();
+          notify('✅ داده‌ها با موفقیت بازیابی شد');
+        } else {
+          notify('❌ فرمت فایل صحیح نیست');
+        }
+      } catch (err) {
+        notify('❌ خطا در خواندن فایل');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  function clearAllData() {
+    if (!confirm('⚠️ آیا مطمئن هستید؟ تمام داده‌ها پاک خواهد شد و قابل بازگشت نیست!')) return;
+    transactions = [];
+    categories = { ...defaultCategories };
+    saveData();
+    renderAll();
+    notify('🗑️ تمام داده‌ها پاک شد');
+  }
+
+  // ============ RENDER ALL ============
+  function renderAll() {
+    renderStats();
+    renderBarChart();
+    renderDonut();
+    renderRecentTx();
+    renderAreaChart();
+    renderAllTx();
+    renderAnalytics();
+    renderBudgets();
+    renderCategories();
+    renderSettings();
+  }
+
+  // ============ KEYBOARD ============
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeModal();
+      closeCategoryModal();
+    }
+    if (e.ctrlKey && e.key === 'n') { 
+      e.preventDefault(); 
+      openModal('income'); 
+    }
+  });
+
+  // ============ INIT ============
+  function init() {
+    loadData();
+    
+    const now = new Date();
+    document.getElementById('currentDate').textContent = now.toLocaleDateString('fa-IR', {
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric'
+    });
+    
+    document.getElementById('inputDate').value = now.toISOString().split('T')[0];
+    updateCategoryOptions();
+    
+    // اگر تراکنشی نداریم، داده نمونه بساز
+    if (transactions.length === 0) {
+      seedData();
+    }
+    
+    renderAll();
+    notify('✅ پول‌یار آماده است!');
+  }
+
+  // Start app
+  init();
+</script>
+</body>
+</html>
