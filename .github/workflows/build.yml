@@ -1,33 +1,134 @@
-name: Build
+name: 🚀 Build Poolyaar
 
 on:
   push:
-    tags:
+    branches: 
+      - main
+      - develop
+    tags: 
       - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: '20'
 
 jobs:
-  build:
+  build-windows:
+    name: 🪟 Build Windows
     runs-on: windows-latest
-
+    
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: Build
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npm run build
-
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: windows-installer
-        path: dist/*.exe
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📦 Install Dependencies
+        run: |
+          if (Test-Path package-lock.json) {
+            npm ci --prefer-offline --no-audit 2>&1 | Tee-Object -Variable output
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "⚠️ npm ci failed, falling back to npm install..."
+              npm install --prefer-offline --no-audit
+            }
+          } else {
+            npm install --prefer-offline --no-audit
+          }
+        shell: pwsh
+      
+      - name: 🏷️ Get Version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION=$(node -p "require('./package.json').version")
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📌 Version: $VERSION"
+      
+      - name: 🔨 Build Windows Installer
+        run: npm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 📋 List Build Output
+        shell: bash
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📦 Build Output:"
+          ls -lh dist/
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      
+      - name: ⬆️ Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Poolyaar-Windows-v${{ steps.version.outputs.version }}-Build${{ github.run_number }}
+          path: |
+            dist/Poolyaar-Setup-*.exe
+            dist/*.blockmap
+            dist/latest.yml
+          retention-days: 30
+          if-no-files-found: error
+      
+      - name: 🔐 Calculate Checksums
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          cd dist
+          for file in Poolyaar-Setup-*.exe; do
+            if [ -f "$file" ]; then
+              sha256sum "$file" > "$file.sha256"
+              echo "✅ Checksum: $file"
+            fi
+          done
+      
+      - name: 🎉 Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/Poolyaar-Setup-*.exe
+            dist/Poolyaar-Setup-*.exe.sha256
+            dist/latest.yml
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          fail_on_unmatched_files: false
+          name: Poolyaar v${{ steps.version.outputs.version }}
+          body: |
+            ## 🚀 Poolyaar Desktop v${{ steps.version.outputs.version }}
+            
+            ### 📥 دانلود Windows
+            دانلود فایل `Poolyaar-Setup-${{ steps.version.outputs.version }}.exe` از بخش Assets پایین صفحه.
+            
+            ### 📋 نیازمندی‌ها
+            - Windows 10/11 (64-bit)
+            - 4GB RAM
+            - 200MB فضای دیسک
+            
+            ### 🔧 نصب
+            1. دانلود Setup
+            2. اجرا و نصب
+            3. لذت ببرید! 🎉
+            
+            ### 🔐 امنیت
+            نسخه‌های قبلی خودکار آپدیت می‌شوند.
+            
+            ---
+            **Build:** #${{ github.run_number }} | **Commit:** [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

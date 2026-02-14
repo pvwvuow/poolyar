@@ -1,45 +1,60 @@
 {
-  "name": "poolyar",
+  "name": "poolyaar",
   "version": "1.0.0",
-  "description": "مدیریت هوشمند حساب - Poolyar Desktop",
+  "description": "پول‌یار — مدیریت مالی شخصی",
   "main": "main.js",
-  "author": "pvwvuow",
+  "author": {
+    "name": "Poolyaar Team",
+    "email": "support@poolyaar.app"
+  },
   "license": "MIT",
+  "homepage": "https://github.com/pvwvuow/poolyaar#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pvwvuow/poolyar.git"
+    "url": "https://github.com/pvwvuow/poolyaar.git"
   },
+  "bugs": {
+    "url": "https://github.com/pvwvuow/poolyaar/issues"
+  },
+  "keywords": [
+    "electron",
+    "finance",
+    "personal-finance",
+    "poolyaar",
+    "money",
+    "persian"
+  ],
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "test": "echo \"No tests yet\" && exit 0",
-    "build": "electron-builder --win --x64"
-  },
-  "keywords": [
-    "poolyar",
-    "accounting",
-    "finance",
-    "desktop"
-  ],
-  "devDependencies": {
-    "electron": "^28.0.0",
-    "electron-builder": "^24.9.1"
+    "build": "electron-builder --win --publish never",
+    "build:win": "electron-builder --win --publish never",
+    "build:installer": "electron-builder --win --config.win.target=nsis --publish never",
+    "build:portable": "electron-builder --win --config.win.target=portable --publish never",
+    "build:mac": "electron-builder --mac --publish never",
+    "build:linux": "electron-builder --linux --publish never",
+    "clean": "node -e \"require('fs').rmSync('dist', {recursive:true, force:true})\""
   },
   "dependencies": {
-    "electron-store": "^8.1.0"
+    "electron-store": "^8.1.0",
+    "electron-updater": "^6.1.7"
+  },
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1"
   },
   "build": {
-    "appId": "com.poolyar.app",
-    "productName": "Poolyar",
-    "copyright": "Copyright © 2025 pvwvuow",
+    "appId": "com.poolyaar.desktop",
+    "productName": "Poolyaar",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build"
     },
     "files": [
       "main.js",
       "preload.js",
-      "src/**/*",
-      "package.json"
+      "*.html",
+      "build/icon.*"
     ],
     "win": {
       "target": [
@@ -48,22 +63,43 @@
           "arch": ["x64"]
         }
       ],
+      "icon": "build/icon.ico",
       "artifactName": "${productName}-Setup-${version}.${ext}",
-      "publisherName": "pvwvuow"
+      "publisherName": "Poolyaar Team"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Poolyar",
-      "deleteAppDataOnUninstall": false,
-      "runAfterFinish": true
+      "shortcutName": "Poolyaar",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "deleteAppDataOnUninstall": true,
+      "runAfterFinish": true,
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.finance",
+      "artifactName": "${productName}-${version}-mac.${ext}"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "build/icon.png",
+      "category": "Finance",
+      "artifactName": "${productName}-${version}-linux.${ext}"
     },
     "publish": {
       "provider": "github",
       "owner": "pvwvuow",
-      "repo": "poolyar"
+      "repo": "poolyaar"
     }
   }
 }

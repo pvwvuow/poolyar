@@ -1,28 +1,24 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 // ═══════════════════════════════════════════════════════════
-// 🌉 Context Bridge API
+// 🌉 POOLYAAR ELECTRON API BRIDGE
 // ═══════════════════════════════════════════════════════════
 
-contextBridge.exposeInMainWorld('electronAPI', {
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🪟 Window Controls
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    minimize: () => ipcRenderer.invoke('window.minimize'),
-    maximize: () => ipcRenderer.invoke('window.maximize'),
-    close: () => ipcRenderer.invoke('window.close'),
-    isMaximized: () => ipcRenderer.invoke('window.isMaximized'),
+contextBridge.exposeInMainWorld('electron', {
+    // App info & controls
+    app: {
+        getVersion: () => ipcRenderer.invoke('app.getVersion'),
+        getName: () => ipcRenderer.invoke('app.getName'),
+        getPath: (name) => ipcRenderer.invoke('app.getPath', name),
+        minimize: () => ipcRenderer.invoke('app.minimize'),
+        maximize: () => ipcRenderer.invoke('app.maximize'),
+        close: () => ipcRenderer.invoke('app.close'),
+        quit: () => ipcRenderer.invoke('app.quit'),
+        isMaximized: () => ipcRenderer.invoke('app.isMaximized'),
+        openUpdater: () => ipcRenderer.invoke('app.openUpdater')
+    },
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🖥️ App Info
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    getVersion: () => ipcRenderer.invoke('app.getVersion'),
-    getName: () => ipcRenderer.invoke('app.getName'),
-    getPath: (name) => ipcRenderer.invoke('app.getPath', name),
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 💾 Store (LocalStorage alternative)
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // Persistent storage
     store: {
         get: (key, defaultValue) => ipcRenderer.invoke('store.get', key, defaultValue),
         set: (key, value) => ipcRenderer.invoke('store.set', key, value),
@@ -31,10 +27,52 @@ contextBridge.exposeInMainWorld('electronAPI', {
         has: (key) => ipcRenderer.invoke('store.has', key)
     },
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🔗 Shell Operations
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    openExternal: (url) => ipcRenderer.invoke('shell.openExternal', url)
+    // Notifications
+    showNotification: (options) => ipcRenderer.invoke('notification.show', options),
+
+    // External links & files
+    openExternal: (url) => ipcRenderer.invoke('shell.openExternal', url),
+    showItemInFolder: (path) => ipcRenderer.invoke('shell.showItemInFolder', path),
+
+    // Update events
+    onUpdateAvailable: (callback) => {
+        ipcRenderer.on('update-available', (event, info) => callback(info));
+    },
+    onUpdateDownloaded: (callback) => {
+        ipcRenderer.on('update-downloaded', (event, info) => callback(info));
+    },
+    onUpdateProgress: (callback) => {
+        ipcRenderer.on('update-download-progress', (event, progress) => callback(progress));
+    },
+    onUpdateError: (callback) => {
+        ipcRenderer.on('update-error', (event, error) => callback(error));
+    }
 });
 
-console.log('✅ Preload script loaded - electronAPI exposed to renderer');
+// ═══════════════════════════════════════════════════════════
+// 🪟 TITLEBAR API
+// ═══════════════════════════════════════════════════════════
+
+contextBridge.exposeInMainWorld('electronAPI', {
+    minimizeWindow: () => ipcRenderer.send('minimize-window'),
+    maximizeWindow: () => ipcRenderer.send('maximize-window'),
+    closeWindow: () => ipcRenderer.send('close-window'),
+    
+    // Auto-updater APIs
+    checkForUpdates: () => ipcRenderer.send('check-for-updates'),
+    downloadUpdate: () => ipcRenderer.send('download-update'),
+    installUpdate: () => ipcRenderer.send('install-update'),
+    getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+    
+    // Listen to updater messages
+    onUpdaterMessage: (callback) => {
+        ipcRenderer.on('updater-message', (event, data) => callback(data));
+    },
+    
+    // Remove listener
+    removeUpdaterListener: () => {
+        ipcRenderer.removeAllListeners('updater-message');
+    }
+});
+
+console.log('🌉 Poolyaar Preload script loaded');
