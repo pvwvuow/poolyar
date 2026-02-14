@@ -33,16 +33,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm' 
       
       - name: 📦 Install Dependencies
+        run: npm install --prefer-offline --no-audit
+        shell: pwsh
+      
+      # ✅ روش هوشمند برای اجرا یا نادیده گرفتن تست
+      - name: 🧪 Check or Run Tests
+        id: test_step
+        continue-on-error: true
         run: |
-          if (Test-Path package-lock.json) {
-            Write-Host "📦 Lock file found. Running npm ci..."
-            npm ci --prefer-offline --no-audit
+          # بررسی وجود اسکریپت test در package.json
+          $scripts = node -p "require('./package.json').scripts || '{}'" | ConvertFrom-Json
+          
+          if ($scripts.PSObject.Properties.Name -contains 'test' -and $scripts.test -ne '') {
+            Write-Host "✅ Running npm test..."
+            npm test
           } else {
-            Write-Host "⚠️ Lock file not found. Running npm install..."
-            npm install --prefer-offline --no-audit
+            Write-Host "⚠️ 'test' script not found in package.json. Skipping tests."
           }
         shell: pwsh
       
@@ -129,4 +137,4 @@ jobs:
             ---
             **Build:** #${{ github.run_number }} | **Commit:** [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: $${{ secrets.GITHUB_TOKEN }}
