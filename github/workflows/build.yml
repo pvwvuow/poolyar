@@ -1,49 +1,35 @@
-name: Build EXE
+name: Build Electron App
 
 on:
   push:
-    branches: [ main ]
-  release:
-    types: [ published ]
+    tags:
+      - 'v*'
 
 jobs:
-  build-windows:
+  build:
     runs-on: windows-latest
-    
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-    
-    - name: Install Dependencies
-      run: npm install
-    
-    - name: Build Electron App
-      run: npm run build:win
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: poolyar-windows
-        path: |
-          dist/*.exe
-          dist/*.zip
-        retention-days: 30
-    
-    # اگه Release باشه، فایل رو بهش attach کن
-    - name: Upload to Release
-      if: github.event_name == 'release'
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          dist/*.exe
-          dist/*.zip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      # این خط رو کامنت یا حذف کن:
+      # - name: Run tests
+      #   run: npm test
+
+      - name: Build Windows app
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-executable
+          path: dist/*.exe
