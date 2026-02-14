@@ -33,17 +33,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'npm' 
       
       - name: 📦 Install Dependencies
         run: |
           if (Test-Path package-lock.json) {
-            npm ci --prefer-offline --no-audit 2>&1 | Tee-Object -Variable output
-            if ($LASTEXITCODE -ne 0) {
-              Write-Host "⚠️ npm ci failed, falling back to npm install..."
-              npm install --prefer-offline --no-audit
-            }
+            Write-Host "📦 Lock file found. Running npm ci..."
+            npm ci --prefer-offline --no-audit
           } else {
+            Write-Host "⚠️ Lock file not found. Running npm install..."
             npm install --prefer-offline --no-audit
           }
         shell: pwsh
