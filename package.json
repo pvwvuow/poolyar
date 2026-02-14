@@ -13,10 +13,7 @@
     "start": "electron .",
     "dev": "electron . --dev",
     "test": "echo \"No tests yet\" && exit 0",
-    "build": "electron-builder",
-    "build:win": "electron-builder --win --x64",
-    "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux"
+    "build": "electron-builder --win --x64"
   },
   "keywords": [
     "poolyar",
@@ -36,14 +33,12 @@
     "productName": "Poolyar",
     "copyright": "Copyright © 2025 pvwvuow",
     "directories": {
-      "output": "dist",
-      "buildResources": "build"
+      "output": "dist"
     },
     "files": [
       "main.js",
       "preload.js",
       "src/**/*",
-      "build/icon.*",
       "package.json"
     ],
     "win": {
@@ -53,7 +48,6 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "build/icon.ico",
       "artifactName": "${productName}-Setup-${version}.${ext}",
       "publisherName": "pvwvuow"
     },
@@ -63,22 +57,8 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Poolyar",
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico",
-      "installerHeaderIcon": "build/icon.ico",
       "deleteAppDataOnUninstall": false,
-      "runAfterFinish": true,
-      "license": null
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "build/icon.png",
-      "category": "public.app-category.finance"
-    },
-    "linux": {
-      "target": ["AppImage"],
-      "icon": "build/icon.png",
-      "category": "Finance"
+      "runAfterFinish": true
     },
     "publish": {
       "provider": "github",
