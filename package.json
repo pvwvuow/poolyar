@@ -1,55 +1,26 @@
 {
   "name": "poolyar",
   "version": "1.0.0",
-  "description": "پول‌یار — مدیریت مالی شخصی",
+  "description": "مدیریت حساب",
   "main": "main.js",
-  "author": "pvwvuow",
-  "license": "MIT",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win",
-    "build:all": "electron-builder --win --linux",
-    "postinstall": "electron-builder install-app-deps"
+    "test": "echo \"Error: no test specified\" && exit 0",
+    "build": "electron-builder"
+  },
+  "keywords": [],
+  "author": "pvwvuow",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
   },
   "build": {
     "appId": "com.poolyar.app",
-    "productName": "پول‌یار",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "main.js",
-      "src/**/*",
-      "package.json"
-    ],
+    "productName": "Poolyar",
     "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        }
-      ],
-      "icon": "icon.ico",
-      "artifactName": "Poolyar-Setup-${version}.${ext}"
-    },
-    "nsis": {
-      "oneClick": true,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": false,
-      "deleteAppDataOnUninstall": false,
-      "installerIcon": "icon.ico",
-      "uninstallerIcon": "icon.ico",
-      "shortcutName": "پول‌یار"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "pvwvuow",
-      "repo": "poolyar",
-      "releaseType": "release"
+      "target": "nsis",
+      "icon": "build/icon.ico"
     }
-  },
-  "devDependencies": {
-    "electron": "^33.2.0",
-    "electron-builder": "^25.1.8"
   }
 }
